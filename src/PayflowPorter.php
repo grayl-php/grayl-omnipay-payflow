@@ -4,6 +4,8 @@
 
    use Grayl\Mixin\Common\Traits\StaticTrait;
    use Grayl\Omnipay\Common\OmnipayPorterAbstract;
+   use Grayl\Omnipay\Payflow\Config\PayflowAPIEndpoint;
+   use Grayl\Omnipay\Payflow\Config\PayflowConfig;
    use Grayl\Omnipay\Payflow\Controller\PayflowAuthorizeRequestController;
    use Grayl\Omnipay\Payflow\Controller\PayflowCaptureRequestController;
    use Grayl\Omnipay\Payflow\Entity\PayflowAuthorizeRequestData;
@@ -19,7 +21,7 @@
 
    /**
     * Front-end for the Payflow Omnipay package
-    * @method PayflowGatewayData getSavedGatewayDataEntity ( string $endpoint_id )
+    * @method PayflowGatewayData getSavedGatewayDataEntity ( string $api_endpoint_id )
     *
     * @package Grayl\Omnipay\Payflow
     */
@@ -34,18 +36,25 @@
        *
        * @var string
        */
-      protected string $config_file = 'gateway.omnipay.payflow.php';
+      protected string $config_file = 'omnipay-payflow.php';
+
+      /**
+       * The PayflowConfig instance for this gateway
+       *
+       * @var PayflowConfig
+       */
+      protected $config;
 
 
       /**
        * Creates a new Omnipay ApiGateway object for use in a PayflowGatewayData entity
        *
-       * @param array $credentials An array containing all of the credentials needed to create the gateway API
+       * @param PayflowAPIEndpoint $api_endpoint A PayflowAPIEndpoint with credentials needed to create a gateway API object
        *
        * @return ProGateway
        * @throws \Exception
        */
-      public function newGatewayAPI ( array $credentials ): object
+      public function newGatewayAPI ( $api_endpoint ): object
       {
 
          // Create the Omnipay PayflowGatewayData api entity
@@ -53,10 +62,10 @@
          $api = Omnipay::create( 'Payflow_Pro' );
 
          // Set the environment's credentials into the API
-         $api->setUsername( $credentials[ 'username' ] );
-         $api->setPassword( $credentials[ 'password' ] );
-         $api->setVendor( $credentials[ 'vendor' ] );
-         $api->setPartner( $credentials[ 'partner' ] );
+         $api->setUsername( $api_endpoint->getUsername() );
+         $api->setPassword( $api_endpoint->getPassword() );
+         $api->setVendor( $api_endpoint->getVendor() );
+         $api->setPartner( $api_endpoint->getPartner() );
 
          // Return the new instance
          return $api;
@@ -66,21 +75,21 @@
       /**
        * Creates a new PayflowGatewayData entity
        *
-       * @param string $endpoint_id The API endpoint ID to use (typically "default" is there is only one API gateway)
+       * @param string $api_endpoint_id The API endpoint ID to use (typically "default" if there is only one API gateway)
        *
        * @return PayflowGatewayData
        * @throws \Exception
        */
-      public function newGatewayDataEntity ( string $endpoint_id ): object
+      public function newGatewayDataEntity ( string $api_endpoint_id ): object
       {
 
          // Grab the gateway service
          $service = new PayflowGatewayService();
 
-         // Get an API
-         $api = $this->newGatewayAPI( $service->getAPICredentials( $this->config,
-                                                                   $this->environment,
-                                                                   $endpoint_id ) );
+         // Get a new API
+         $api = $this->newGatewayAPI( $service->getAPIEndpoint( $this->config,
+                                                                $this->environment,
+                                                                $api_endpoint_id ) );
 
          // Configure the API as needed using the service
          $service->configureAPI( $api,
@@ -88,7 +97,7 @@
 
          // Return the gateway
          return new PayflowGatewayData( $api,
-                                        $this->config->getConfig( 'name' ),
+                                        $this->config->getGatewayName(),
                                         $this->environment );
       }
 
