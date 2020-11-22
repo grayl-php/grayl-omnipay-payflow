@@ -4,7 +4,7 @@
 
    use Grayl\Mixin\Common\Traits\StaticTrait;
    use Grayl\Omnipay\Common\Entity\OmnipayGatewayCreditCard;
-   use Grayl\Omnipay\Common\Helper\OmnipayOrderHelperAbstract;
+   use Grayl\Omnipay\Common\Helper\OmnipayOrderHelperCreditCardAbstract;
    use Grayl\Omnipay\Payflow\Controller\PayflowAuthorizeRequestController;
    use Grayl\Omnipay\Payflow\Controller\PayflowCaptureRequestController;
    use Grayl\Omnipay\Payflow\PayflowPorter;
@@ -16,7 +16,7 @@
     *
     * @package Grayl\Omnipay\Payflow
     */
-   class PayflowOrderHelper extends OmnipayOrderHelperAbstract
+   class PayflowOrderHelper extends OmnipayOrderHelperCreditCardAbstract
    {
 
       // Use the static instance trait

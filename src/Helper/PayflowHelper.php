@@ -3,7 +3,7 @@
    namespace Grayl\Omnipay\Payflow\Helper;
 
    use Grayl\Mixin\Common\Traits\StaticTrait;
-   use Grayl\Omnipay\Common\Helper\OmnipayHelperAbstract;
+   use Grayl\Omnipay\Common\Helper\OmnipayHelperCreditCardAbstract;
 
    /**
     * A package of functions for working with various Payflow objects
@@ -11,7 +11,7 @@
     *
     * @package Grayl\Omnipay\Payflow
     */
-   class PayflowHelper extends OmnipayHelperAbstract
+   class PayflowHelper extends OmnipayHelperCreditCardAbstract
    {
 
       // Use the static instance trait
