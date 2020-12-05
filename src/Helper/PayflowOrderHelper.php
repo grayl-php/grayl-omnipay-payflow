@@ -68,16 +68,11 @@
 
          // Create a new PayflowCaptureRequestController for capturing payment
          $request = PayflowPorter::getInstance()
-                                 ->newPayflowCaptureRequestController();
+                                 ->newPayflowCaptureRequestController( $reference_id );
 
          // Translate only the OrderData entity into the capture request, the rest was sent with the authorization
          $this->translateOrderData( $request->getRequestData(),
                                     $order_controller->getOrderData() );
-
-         // Translate the reference ID from the previous response
-         PayflowHelper::getInstance()
-                      ->translateOmnipayReferenceID( $request->getRequestData(),
-                                                     $reference_id );
 
          // Return the created entity
          return $request;

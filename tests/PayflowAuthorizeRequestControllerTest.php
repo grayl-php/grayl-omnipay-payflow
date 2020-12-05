@@ -194,7 +194,7 @@
 
          // Create the object
          $request = PayflowPorter::getInstance()
-                                 ->newPayflowCaptureRequestController();
+                                 ->newPayflowCaptureRequestController( $auth_response->getReferenceID() );
 
          // Check the type of object returned
          $this->assertInstanceOf( PayflowCaptureRequestController::class,
@@ -205,7 +205,6 @@
 
          // Order fields
          $data->setAmount( $auth_response->getAmount() );
-         $data->setTransactionReference( $auth_response->getReferenceID() );
 
          // Check the total
          $this->assertEquals( 88.00,

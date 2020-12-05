@@ -126,15 +126,20 @@
       /**
        * Creates a new PayflowCaptureRequestController entity
        *
+       * @param string $reference_id A reference ID from a previously submitted PayflowAuthorizeRequestController
+       *
        * @return PayflowCaptureRequestController
        * @throws \Exception
        */
-      public function newPayflowCaptureRequestController (): PayflowCaptureRequestController
+      public function newPayflowCaptureRequestController ( string $reference_id ): PayflowCaptureRequestController
       {
 
          // Create the PayflowQueryRequestData entity
          $request_data = new PayflowCaptureRequestData( 'capture',
                                                         $this->getOffsiteURLs() );
+
+         // Set the reference ID
+         $request_data->setTransactionReference( $reference_id );
 
          // Return a new PayflowQueryRequestController entity
          return new PayflowCaptureRequestController( $this->getSavedGatewayDataEntity( 'default' ),
