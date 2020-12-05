@@ -92,38 +92,28 @@
 
          // Create the object
          $request = PayflowPorter::getInstance()
-                                 ->newPayflowAuthorizeRequestController();
+                                 ->newPayflowAuthorizeRequestController( 'test-' . time(),
+                                                                         88.00,
+                                                                         'USD',
+                                                                         $_SERVER[ 'REMOTE_ADDR' ],
+                                                                         'Jake',
+                                                                         'Doe',
+                                                                         'jakedoe@fake.com',
+                                                                         '1234 Fake Rd.',
+                                                                         null,
+                                                                         'Las Vegas',
+                                                                         'NV',
+                                                                         89131,
+                                                                         'US',
+                                                                         null,
+                                                                         $credit_card->getNumber(),
+                                                                         $credit_card->getExpiryMonth(),
+                                                                         $credit_card->getExpiryYear(),
+                                                                         $credit_card->getCVV() );
 
          // Check the type of object returned
          $this->assertInstanceOf( PayflowAuthorizeRequestController::class,
                                   $request );
-
-         // Get the request data object
-         $data = $request->getRequestData();
-
-         // Order fields
-         $data->setTransactionID( 'test-' . time() );
-         $data->setAmount( 88.00 );
-         $data->setCurrency( 'USD' );
-         $data->setClientIP( $_SERVER[ 'REMOTE_ADDR' ] );
-
-         // Customer fields
-         $data->setFirstName( 'Jake' );
-         $data->setLastName( 'Doe' );
-         $data->setEmail( 'jakedoe@fake.com' );
-         $data->setAddress1( '1234 Fake Rd.' );
-         $data->setAddress2( null );
-         $data->setCity( 'Las Vegas' );
-         $data->setState( 'NV' );
-         $data->setPostcode( 89131 );
-         $data->setCountry( 'US' );
-         $data->setPhone( null );
-
-         // Credit card fields
-         $data->setCreditCardNumber( $credit_card->getNumber() );
-         $data->setCreditCardExpiryMonth( $credit_card->getExpiryMonth() );
-         $data->setCreditCardExpiryYear( $credit_card->getExpiryYear() );
-         $data->setCreditCardCVV( $credit_card->getCVV() );
 
          // Check the total
          $this->assertEquals( 88.00,
@@ -194,7 +184,11 @@
 
          // Create the object
          $request = PayflowPorter::getInstance()
-                                 ->newPayflowCaptureRequestController( $auth_response->getReferenceID() );
+                                 ->newPayflowCaptureRequestController( 'test-' . time(),
+                                                                       88.00,
+                                                                       'USD',
+                                                                       $_SERVER[ 'REMOTE_ADDR' ],
+                                                                       $auth_response->getReferenceID() );
 
          // Check the type of object returned
          $this->assertInstanceOf( PayflowCaptureRequestController::class,
