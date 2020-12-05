@@ -194,12 +194,6 @@
          $this->assertInstanceOf( PayflowCaptureRequestController::class,
                                   $request );
 
-         // Get the request data object
-         $data = $request->getRequestData();
-
-         // Order fields
-         $data->setAmount( $auth_response->getAmount() );
-
          // Check the total
          $this->assertEquals( 88.00,
                               $request->getRequestData()
