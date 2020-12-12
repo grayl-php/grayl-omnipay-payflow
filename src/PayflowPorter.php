@@ -105,15 +105,75 @@
       /**
        * Creates a new PayflowAuthorizeRequestController entity
        *
+       * @param string  $transaction_id     The internal transaction ID
+       * @param float   $amount             The amount to charge
+       * @param string  $currency           The base currency of the amount
+       * @param string  $ip_address         The IP of the client
+       * @param string  $first_name         The  first name
+       * @param string  $last_name          The  last name
+       * @param string  $email_address      The email address
+       * @param string  $address_1          The address part 1
+       * @param ?string $address_2          The address part 2
+       * @param string  $city               The city
+       * @param string  $state              The state
+       * @param string  $postcode           The postcode
+       * @param string  $country            The country
+       * @param ?string $phone              The phone
+       * @param string  $credit_card_number The credit card number
+       * @param string  $expiry_month       The credit card expiry month (2 digit)
+       * @param string  $expiry_year        The credit card expiry year (4 digit)
+       * @param string  $cvv                The credit card CVV
+       *
        * @return PayflowAuthorizeRequestController
        * @throws \Exception
        */
-      public function newPayflowAuthorizeRequestController (): PayflowAuthorizeRequestController
+      public function newPayflowAuthorizeRequestController ( string $transaction_id,
+                                                             float $amount,
+                                                             string $currency,
+                                                             string $ip_address,
+                                                             string $first_name,
+                                                             string $last_name,
+                                                             string $email_address,
+                                                             string $address_1,
+                                                             ?string $address_2,
+                                                             string $city,
+                                                             string $state,
+                                                             string $postcode,
+                                                             string $country,
+                                                             ?string $phone,
+                                                             string $credit_card_number,
+                                                             string $expiry_month,
+                                                             string $expiry_year,
+                                                             string $cvv ): PayflowAuthorizeRequestController
       {
 
          // Create the PayflowQueryRequestData entity
          $request_data = new PayflowAuthorizeRequestData( 'authorize',
                                                           $this->getOffsiteURLs() );
+
+         // Set the order parameters
+         $request_data->setTransactionID( $transaction_id );
+         $request_data->setAmount( $amount );
+         $request_data->setCurrency( $currency );
+         $request_data->setClientIP( $ip_address );
+
+         // Set the customer parameters
+         $request_data->setFirstName( $first_name );
+         $request_data->setLastName( $last_name );
+         $request_data->setEmail( $email_address );
+         $request_data->setAddress1( $address_1 );
+         $request_data->setAddress2( $address_2 );
+         $request_data->setCity( $city );
+         $request_data->setState( $state );
+         $request_data->setPostcode( $postcode );
+         $request_data->setCountry( $country );
+         $request_data->setPhone( $phone );
+
+         // Set the credit card parameters
+         $request_data->setCreditCardNumber( $credit_card_number );
+         $request_data->setCreditCardExpiryMonth( $expiry_month );
+         $request_data->setCreditCardExpiryYear( $expiry_year );
+         $request_data->setCreditCardCVV( $cvv );
 
          // Return a new PayflowQueryRequestController entity
          return new PayflowAuthorizeRequestController( $this->getSavedGatewayDataEntity( 'default' ),
@@ -126,15 +186,32 @@
       /**
        * Creates a new PayflowCaptureRequestController entity
        *
+       * @param string $transaction_id The internal transaction ID
+       * @param float  $amount         The amount to charge
+       * @param string $currency       The base currency of the amount
+       * @param string $ip_address     The IP of the client
+       * @param string $reference_id   A reference ID from a previously submitted PayflowAuthorizeRequestController
+       *
        * @return PayflowCaptureRequestController
        * @throws \Exception
        */
-      public function newPayflowCaptureRequestController (): PayflowCaptureRequestController
+      public function newPayflowCaptureRequestController ( string $transaction_id,
+                                                           float $amount,
+                                                           string $currency,
+                                                           string $ip_address,
+                                                           string $reference_id ): PayflowCaptureRequestController
       {
 
          // Create the PayflowQueryRequestData entity
          $request_data = new PayflowCaptureRequestData( 'capture',
                                                         $this->getOffsiteURLs() );
+
+         // Set the order parameters
+         $request_data->setTransactionID( $transaction_id );
+         $request_data->setAmount( $amount );
+         $request_data->setCurrency( $currency );
+         $request_data->setClientIP( $ip_address );
+         $request_data->setTransactionReference( $reference_id );
 
          // Return a new PayflowQueryRequestController entity
          return new PayflowCaptureRequestController( $this->getSavedGatewayDataEntity( 'default' ),

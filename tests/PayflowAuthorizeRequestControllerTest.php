@@ -9,10 +9,7 @@
    use Grayl\Omnipay\Payflow\Controller\PayflowCaptureRequestController;
    use Grayl\Omnipay\Payflow\Controller\PayflowCaptureResponseController;
    use Grayl\Omnipay\Payflow\Entity\PayflowGatewayData;
-   use Grayl\Omnipay\Payflow\Helper\PayflowOrderHelper;
    use Grayl\Omnipay\Payflow\PayflowPorter;
-   use Grayl\Store\Order\Controller\OrderController;
-   use Grayl\Store\Order\OrderPorter;
    use PHPUnit\Framework\TestCase;
 
    /**
@@ -58,71 +55,6 @@
 
 
       /**
-       * Creates a test order object with good data
-       * TODO: Change this test data
-       *
-       * @return OrderController
-       * @throws \Exception
-       */
-      public function testCreateOrderController (): OrderController
-      {
-
-         // Create the test object
-         $order = OrderPorter::getInstance()
-                             ->newOrderController();
-
-         // Check the type of object returned
-         $this->assertInstanceOf( OrderController::class,
-                                  $order );
-
-         // Basic order data
-         $data = $order->getOrderData();
-         $data->setAmount( 100.00 );
-         $data->setDescription( 'Payflow test order' );
-
-         // Customer creation
-         $order->setOrderCustomer( OrderPorter::getInstance()
-                                              ->newOrderCustomer( $order->getOrderID(),
-                                                                  'Jane',
-                                                                  'Doe',
-                                                                  'janedoe@fake.com',
-                                                                  '1234 Fake Rd.',
-                                                                  '#3307',
-                                                                  'Las Vegas',
-                                                                  '89131',
-                                                                  'NV',
-                                                                  'US',
-                                                                  null ) );
-
-         // Items
-         $order->putOrderItem( OrderPorter::getInstance()
-                                          ->newOrderItem( $order->getOrderID(),
-                                                          'item1',
-                                                          'Testing Item',
-                                                          '2',
-                                                          22.98 ) );
-         $order->putOrderItem( OrderPorter::getInstance()
-                                          ->newOrderItem( $order->getOrderID(),
-                                                          'item2',
-                                                          'Testing Item 2',
-                                                          '3',
-                                                          19.49 ) );
-         $order->putOrderItem( OrderPorter::getInstance()
-                                          ->newOrderItem( $order->getOrderID(),
-                                                          'item3',
-                                                          'Testing Item 3',
-                                                          '1',
-                                                          9.99 ) );
-
-         // Save the order
-         $order->saveOrder();
-
-         // Return the object
-         return $order;
-      }
-
-
-      /**
        * Creates a test OmnipayGatewayCreditCard object to be used in a test
        *
        * @return OmnipayGatewayCreditCard
@@ -149,29 +81,42 @@
       /**
        * Tests the creation of a PayflowAuthorizeRequestController object
        *
-       * @param OrderController          $order_controller A configured OrderController with order information
-       * @param OmnipayGatewayCreditCard $credit_card      A configured OmnipayGatewayCreditCard entity with payment information
+       * @param OmnipayGatewayCreditCard $credit_card A configured OmnipayGatewayCreditCard entity with payment information
        *
-       * @depends testCreateOrderController
        * @depends testCreateOmnipayGatewayCreditCard
        * @return PayflowAuthorizeRequestController
        * @throws \Exception
        */
-      public function testCreatePayflowAuthorizeRequestController ( OrderController $order_controller,
-                                                                    OmnipayGatewayCreditCard $credit_card ): PayflowAuthorizeRequestController
+      public function testCreatePayflowAuthorizeRequestController ( OmnipayGatewayCreditCard $credit_card ): PayflowAuthorizeRequestController
       {
 
          // Create the object
-         $request = PayflowOrderHelper::getInstance()
-                                      ->newPayflowAuthorizeRequestControllerFromOrder( $order_controller,
-                                                                                       $credit_card );
+         $request = PayflowPorter::getInstance()
+                                 ->newPayflowAuthorizeRequestController( 'test-' . time(),
+                                                                         88.00,
+                                                                         'USD',
+                                                                         $_SERVER[ 'REMOTE_ADDR' ],
+                                                                         'Jake',
+                                                                         'Doe',
+                                                                         'jakedoe@fake.com',
+                                                                         '1234 Fake Rd.',
+                                                                         null,
+                                                                         'Las Vegas',
+                                                                         'NV',
+                                                                         89131,
+                                                                         'US',
+                                                                         null,
+                                                                         $credit_card->getNumber(),
+                                                                         $credit_card->getExpiryMonth(),
+                                                                         $credit_card->getExpiryYear(),
+                                                                         $credit_card->getCVV() );
 
          // Check the type of object returned
          $this->assertInstanceOf( PayflowAuthorizeRequestController::class,
                                   $request );
 
          // Check the total
-         $this->assertEquals( 114.42,
+         $this->assertEquals( 88.00,
                               $request->getRequestData()
                                       ->getAmount() );
 
@@ -210,9 +155,8 @@
        * @param PayflowAuthorizeResponseController $response A PayflowAuthorizeResponseController returned from the gateway
        *
        * @depends testSendPayflowAuthorizeRequestController
-       * @return string
        */
-      public function testPayflowAuthorizeResponseController ( PayflowAuthorizeResponseController $response ): string
+      public function testPayflowAuthorizeResponseController ( PayflowAuthorizeResponseController $response ): void
       {
 
          // Make sure it worked
@@ -223,78 +167,35 @@
          $this->assertNotNull( $response->getCVVCode() );
          $this->assertNotNull( $response->getAmount() );
 
-         // Return the reference ID
-         return $response->getReferenceID();
-      }
-
-
-      /**
-       * Creates an OrderPayment object from a PayflowAuthorizeResponseController and checks it for errors
-       *
-       * @param OrderController                    $order_controller A configured OrderController with order information
-       * @param PayflowAuthorizeResponseController $response         A PayflowAuthorizeResponseController returned from the gateway
-       *
-       * @depends      testCreateOrderController
-       * @depends      testSendPayflowAuthorizeRequestController
-       * @return OrderController
-       * @throws \Exception
-       */
-      public function testCreateOrderPaymentFromPayflowAuthorizeResponseController ( OrderController $order_controller,
-                                                                                     PayflowAuthorizeResponseController $response ): OrderController
-      {
-
-         // Create a new OrderPayment record from the authorize response
-         PayflowOrderHelper::getInstance()
-                           ->newOrderPaymentFromOmnipayResponseController( $response,
-                                                                           $order_controller,
-                                                                           null );
-
-         // Grab the created payment
-         $payment = $order_controller->getOrderPayment();
-
-         // Test the data
-         $this->assertTrue( $payment->isSuccessful() );
-         $this->assertNotNull( $payment->getReferenceID() );
-         $this->assertEquals( $response->getReferenceID(),
-                              $payment->getReferenceID() );
-         $this->assertEquals( 'authorize',
-                              $payment->getAction() );
-         $this->assertEquals( 'payflow',
-                              $payment->getProcessor() );
-         $this->assertEquals( $response->getAmount(),
-                              $payment->getAmount() );
-
-         // Return the modified order
-         return $order_controller;
       }
 
 
       /**
        * Tests the creation of a PayflowCaptureRequestController object
        *
-       * @param OrderController $order_controller A configured OrderController with order information
-       * @param string          $reference_id     The Omnipay reference ID from a previous authorization
+       * @param PayflowAuthorizeResponseController $auth_response A PayflowAuthorizeResponseController returned from the gateway
        *
-       * @depends testCreateOrderController
-       * @depends testPayflowAuthorizeResponseController
+       * @depends testSendPayflowAuthorizeRequestController
        * @return PayflowCaptureRequestController
        * @throws \Exception
        */
-      public function testCreatePayflowCaptureRequestController ( OrderController $order_controller,
-                                                                  string $reference_id ): PayflowCaptureRequestController
+      public function testCreatePayflowCaptureRequestController ( PayflowAuthorizeResponseController $auth_response ): PayflowCaptureRequestController
       {
 
          // Create the object
-         $request = PayflowOrderHelper::getInstance()
-                                      ->newPayflowCaptureRequestControllerFromOrder( $order_controller,
-                                                                                     $reference_id );
+         $request = PayflowPorter::getInstance()
+                                 ->newPayflowCaptureRequestController( 'test-' . time(),
+                                                                       88.00,
+                                                                       'USD',
+                                                                       $_SERVER[ 'REMOTE_ADDR' ],
+                                                                       $auth_response->getReferenceID() );
 
          // Check the type of object returned
          $this->assertInstanceOf( PayflowCaptureRequestController::class,
                                   $request );
 
          // Check the total
-         $this->assertEquals( 114.42,
+         $this->assertEquals( 88.00,
                               $request->getRequestData()
                                       ->getAmount() );
 
@@ -341,46 +242,6 @@
          $this->assertTrue( $response->isSuccessful() );
          $this->assertFalse( $response->isPending() );
          $this->assertNotNull( $response->getReferenceID() );
-      }
-
-
-      /**
-       * Creates an OrderPayment from a PayflowCaptureResponseController capture request and checks it for errors
-       *
-       * @param OrderController                  $order_controller A configured OrderController with order information
-       * @param PayflowCaptureResponseController $response         A PayflowCaptureResponseController returned from the gateway
-       *
-       * @depends      testCreateOrderPaymentFromPayflowAuthorizeResponseController
-       * @depends      testSendPayflowCaptureRequestController
-       * @throws \Exception
-       */
-      public function testCreateOrderPaymentFromCaptureResponseController ( OrderController $order_controller,
-                                                                            PayflowCaptureResponseController $response ): void
-      {
-
-         // Create a new OrderPayment record from the capture response
-         PayflowOrderHelper::getInstance()
-                           ->newOrderPaymentFromOmnipayResponseController( $response,
-                                                                           $order_controller,
-                                                                           null );
-
-         // Make sure the order is paid
-         $this->assertTrue( $order_controller->isOrderPaid() );
-
-         // Grab the newly created payment
-         $payment = $order_controller->getOrderPayment();
-
-         // Test the data
-         $this->assertTrue( $payment->isSuccessful() );
-         $this->assertNotNull( $payment->getReferenceID() );
-         $this->assertEquals( $response->getReferenceID(),
-                              $payment->getReferenceID() );
-         $this->assertEquals( 'capture',
-                              $payment->getAction() );
-         $this->assertEquals( 'payflow',
-                              $payment->getProcessor() );
-         $this->assertEquals( $response->getAmount(),
-                              $payment->getAmount() );
       }
 
    }
